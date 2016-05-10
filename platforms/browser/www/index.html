@@ -1,0 +1,97 @@
+<html>
+<head>
+<title>Testing News API</title>
+<link rel="stylesheet" href="../libs/bootstrap/css/bootstrap.css">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<br>
+<div class='container'>
+   <div class='col-md-4'>
+      <input type='text' class='form-control' id='articleSearch'><br>
+      <button onclick='getArticles()'>Get Articles</button>
+   </div>
+   <div class='col-md-8' id='articleDiv'>
+      Articles:
+   </div>
+</div>
+
+<script src="../libs/jquery/jquery-2.2.3.js"></script>
+<script src="../libs/bootstrap/js/bootstrap.js"></script>
+<script src="../libs/react/react.js"></script>
+<script src="../libs/react/react-dom.js"></script>
+<script>
+function getArticles(){
+     var jsonURL = "http://www.reddit.com/r/politics/search.json?type=link";
+     jsonURL += "&q=" + document.getElementById('articleSearch').value;
+     console.log("Querying: " + jsonURL);
+
+     $.getJSON({
+       url: jsonURL,
+       type: 'get',
+       headers: {
+       },
+       success: handleArticles
+    });
+
+}
+function handleArticles(data){
+      console.log(data);
+      var listings = data['data']['children'];
+      console.log(listings);
+      $('#articleDiv').empty();
+      for(var i = 0; i < listings.length; i++){
+         printArticle(listings[i]);
+      }
+
+}
+function printArticle(article){
+   console.log('listing found');
+   console.log('title: ' + article.data.title);
+
+   var tn;
+   if(article.data.thumbnail == 'self'){
+      tn = "self.jpg";
+   }else{
+     tn = article.data.thumbnail;
+   }
+   if(tn == 'nsfw' && article.data.media !== null){
+     tn = article.data.media.oembed.thumbnail_url;
+   }
+   if(tn == null || typeof tn == 'undefined'){
+     tn = article.data.secure_media_embed.url;
+   }
+
+   $("<div />", {
+      'id': 'article-list',
+      'class': 'list-group',
+      html: "<a href='"+article.data.url+"' class='list-group-item'>" +
+               "<img src='" + tn + "'><br />" +
+               "<h4 class='list-group-item-heading'>" + article.data.title + "</h4><br />" +
+               "<p class='list-group-item-text'>http://www.reddit.com" + article.data.permalink + "</p><br />" +
+               "<p class='list-group-item-text'>Subreddit: " + article.data.subreddit + "</p><br />" +
+               "<p class='list-group-item-text'>Score: " + article.data.score + "</p><br />" +
+               "<p class='list-group-item-text'>" + article.data.permalink + "</p><br />" +
+            "</a>"
+   }).appendTo("#articleDiv");
+
+   //$("<div />", {
+   //   'id': 'article-list',
+   //   'class': 'list-group',
+   //   html: "heres an article!"
+   //}).appendTo("#articleDiv");
+}
+
+function printPerson(person){
+   $("<div />", {
+      "id": "person-list",
+      "class": "list-group",
+      html: "<a href='#' class='list-group-item' id='item_" + person.id + "'>" +
+            "<h4 class='list-group-item-heading'>" + person.person.firstname + " " + person.person.lastname + "</h4>" +
+            "<p class='list-group-item-text'>" + person.description + "</p>" +
+            "<br>" +
+            "<button type='button' class='btn btn-default' id='btn_" + person.id + "' onclick='personClicked(" + person.id + ")'><span class='glyphicon glyphicon-menu-up'></button>" +
+            "</a>"
+   }).appendTo("#peopleDiv");
+}
+</script>
+</html>
